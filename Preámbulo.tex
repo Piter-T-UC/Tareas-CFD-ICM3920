@@ -1,0 +1,172 @@
+% ======================================================================
+%  preambulo.tex — Estilo común para las tareas de CFD ICM3920
+%  Uso: \input{preambulo} desde el archivo principal.
+%  Compilar con: latexmk -pdf tarea-icm3920.tex
+% ======================================================================
+
+% ---------- Idioma y codificación ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+% ---------- Página ----------
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+
+% ---------- Matemática y unidades ----------
+\usepackage{amsmath,amssymb,bm}
+\usepackage{siunitx}
+\sisetup{
+  detect-all,
+  per-mode        = symbol,
+  range-units     = single,
+  separate-uncertainty = true,
+  % Descomentar si el curso exige coma decimal:
+  % output-decimal-marker = {,},
+}
+% Unidades de uso frecuente en CFD
+\DeclareSIUnit{\poise}{P}
+\DeclareSIUnit{\cell}{celda}
+
+% ---------- Figuras y tablas ----------
+\usepackage{graphicx}
+\graphicspath{{figuras/}{figs/}}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage[font=small,labelfont=bf,width=0.9\textwidth]{caption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc}
+\usepackage{subcaption}
+
+% ---------- Color, cajas y código ----------
+\usepackage{xcolor}
+\definecolor{ofazul}{HTML}{1F4E79}
+\definecolor{ofgris}{HTML}{F5F5F5}
+\definecolor{ofverde}{HTML}{2E7D32}
+\definecolor{ofrojo}{HTML}{B00020}
+\definecolor{ofcomment}{HTML}{6A737D}
+
+\usepackage{listings}
+\lstset{
+  basicstyle       = \ttfamily\footnotesize,
+  backgroundcolor  = \color{ofgris},
+  frame            = single,
+  rulecolor        = \color{ofgris!60!black},
+  breaklines       = true,
+  breakatwhitespace= true,
+  showstringspaces = false,
+  columns          = fullflexible,
+  keepspaces       = true,
+  numbers          = none,
+  captionpos       = b,
+  extendedchars    = true,
+  literate =
+    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+    {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {°}{{$^\circ$}}1
+    % caracteres de árbol (salida de `tree`): se convierten a ASCII
+    {│}{{|}}1 {├}{{|}}1 {└}{{|}}1 {─}{{-}}1 {—}{{-}}1
+}
+
+% Estilo para diccionarios de OpenFOAM (blockMeshDict, 0/U, fvSchemes, ...)
+\lstdefinelanguage{OpenFOAM}{
+  morekeywords = {FoamFile,version,format,class,object,location,dimensions,
+    internalField,boundaryField,type,value,uniform,nonuniform,convertToMeters,
+    vertices,blocks,edges,boundary,mergePatchPairs,hex,simpleGrading,arc,
+    faces,neighbourPatch,inGroups,nFaces,startFace,
+    ddtSchemes,gradSchemes,divSchemes,laplacianSchemes,interpolationSchemes,
+    snGradSchemes,wallDist,solvers,SIMPLE,PISO,PIMPLE,relaxationFactors,
+    application,startFrom,startTime,stopAt,endTime,deltaT,writeControl,
+    writeInterval,writeFormat,writePrecision,runTimeModifiable,adjustTimeStep,
+    maxCo,functions,simulationType,RAS,model,turbulence,printCoeffs},
+  morekeywords = [2]{fixedValue,zeroGradient,noSlip,slip,empty,symmetry,cyclic,
+    inletOutlet,pressureInletOutletVelocity,calculated,
+    kqRWallFunction,epsilonWallFunction,omegaWallFunction,nutkWallFunction,
+    totalPressure,fixedFluxPressure,freestream,movingWallVelocity},
+  sensitive    = true,
+  morecomment  = [l]{//},
+  morecomment  = [s]{/*}{*/},
+  morestring   = [b]",
+}
+\lstdefinestyle{foam}{
+  language     = OpenFOAM,
+  keywordstyle = \color{ofazul}\bfseries,
+  keywordstyle = [2]\color{ofverde},
+  commentstyle = \color{ofcomment}\itshape,
+  stringstyle  = \color{ofrojo},
+}
+\lstdefinestyle{terminal}{
+  language     = bash,
+  basicstyle   = \ttfamily\footnotesize\color{black},
+  keywordstyle = \color{ofazul}\bfseries,
+  commentstyle = \color{ofcomment}\itshape,
+  morekeywords = {blockMesh,checkMesh,snappyHexMesh,surfaceFeatureExtract,
+    decomposePar,reconstructPar,simpleFoam,icoFoam,pisoFoam,pimpleFoam,
+    interFoam,potentialFoam,foamToVTK,postProcess,paraFoam,setFields,
+    mpirun,foamCleanTutorials,transformPoints,refineMesh},
+}
+
+% Nombres en español para los listados
+\renewcommand{\lstlistingname}{Listado}
+\renewcommand{\lstlistlistingname}{Índice de listados}
+
+% Atajos: \begin{foamcode}{ruta/archivo} ... \end{foamcode}
+\lstnewenvironment{foamcode}[1][]
+  {\lstset{style=foam,#1}}
+  {}
+\lstnewenvironment{terminal}[1][]
+  {\lstset{style=terminal,#1}}
+  {}
+
+% ---------- Referencias cruzadas ----------
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  colorlinks = true,
+  linkcolor  = ofazul,
+  citecolor  = ofverde,
+  urlcolor   = ofazul,
+}
+\usepackage[spanish,capitalise,noabbrev]{cleveref}
+\crefname{figure}{Figura}{Figuras}
+\crefname{table}{Tabla}{Tablas}
+\crefname{equation}{Ec.}{Ecs.}
+\crefname{section}{Sección}{Secciones}
+\crefname{lstlisting}{Listado}{Listados}
+
+% ---------- Macros propias ----------
+\newcommand{\OF}{\textsc{OpenFOAM}}
+\newcommand{\PV}{\textsc{ParaView}}
+\newcommand{\archivo}[1]{\texttt{#1}}          % rutas y diccionarios
+\newcommand{\comando}[1]{\texttt{#1}}          % utilidades del terminal
+
+\newcommand{\Rey}{\ensuremath{\mathrm{Re}}}
+\newcommand{\Cou}{\ensuremath{\mathrm{Co}}}
+\newcommand{\Mach}{\ensuremath{\mathrm{Ma}}}
+\newcommand{\Pran}{\ensuremath{\mathrm{Pr}}}
+\newcommand{\yplus}{\ensuremath{y^{+}}}
+\newcommand{\vect}[1]{\ensuremath{\bm{#1}}}
+\newcommand{\dpar}[2]{\ensuremath{\dfrac{\partial #1}{\partial #2}}}
+
+% Marca visible para lo que falta completar (comentar antes de entregar)
+\newcommand{\pend}[1]{\textcolor{ofrojo}{[\textbf{PENDIENTE:} #1]}}
+
+% ---------- Datos de la tarea (editar en el archivo principal) ----------
+\newcommand{\curso}{ICM3920 — Dinámica de Fluidos Computacional}
+\newcommand{\tareanum}{1}
+\newcommand{\tareatitulo}{Título de la tarea}
+\newcommand{\alumno}{Piter}
+\newcommand{\profesor}{}
+\newcommand{\fechaentrega}{\today}
+
+% ---------- Encabezado y pie ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\curso}
+\fancyhead[R]{\small Tarea \tareanum}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}

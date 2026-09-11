@@ -1,0 +1,52 @@
+% ======================================================================
+%  Tarea ICM3920 — Dinámica de Fluidos Computacional (OpenFOAM)
+%  Compilar:  latexmk -pdf tarea-icm3920.tex
+%  Limpiar:   latexmk -c
+%  Estructura de carpetas sugerida:
+%     tarea-01/
+%       |-- tarea-icm3920.tex
+%       |-- preambulo.tex
+%       |-- referencias.bib
+%       `-- figuras/
+% ======================================================================
+\documentclass[11pt,a4paper]{article}
+\input{Preámbulo}
+
+% ---------- Datos de esta tarea ----------
+\renewcommand{\tareanum}{1}
+\renewcommand{\tareatitulo}{Flujo en un canal 2D con}
+\renewcommand{\alumno}{Pedro Taboada (Piter T)}
+\renewcommand{\profesor}{Wolfram Jahn Von Arnswaldt}
+\renewcommand{\fechaentrega}{\today}
+
+\begin{document}
+
+% ======================================================================
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\Large\scshape \curso\par}
+\vspace{0.5cm}
+\rule{\textwidth}{0.8pt}\par
+\vspace{0.8cm}
+{\LARGE\bfseries Tarea \tareanum\par}
+\vspace{0.4cm}
+{\Large \tareatitulo\par}
+\vspace{0.6cm}
+\rule{\textwidth}{0.8pt}\par
+\vspace{2cm}
+{\large \alumno\par}
+\vspace{0.3cm}
+{\large Profesor: \profesor\par}
+
+\vspace{0.5cm}
+{\large \fechaentrega\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ======================================================================
+\input{T1/T1}
+
+\end{document}
