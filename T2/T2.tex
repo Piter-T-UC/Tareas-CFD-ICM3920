@@ -3,7 +3,7 @@
 % ---------------------------------------------------------------
 \section{Enunciado}
 % ---------------------------------------------------------------
-Simule un flujo en el canal para distintos números de Reynolds (considere $\Re = 100, 1000, 10000$ y $100000$) en la geometría indicada usando \of{} (use condiciones \emph{inlet-outlet}). Haga una simulación de flujo incompresible transiente, y use un modelo de turbulencia cuando sea necesario.
+Simule un flujo en el canal para distintos números de Reynolds (considere $\Rey = 100, 1000, 10000$ y $100000$) en la geometría indicada usando \OF{} (use condiciones \emph{inlet-outlet}). Haga una simulación de flujo incompresible transiente, y use un modelo de turbulencia cuando sea necesario.
 
 % ---------------------------------------------------------------
 \section{Geometría y datos del problema}
@@ -30,7 +30,7 @@ Simule un flujo en el canal para distintos números de Reynolds (considere $\Re 
   % cilindro
   \filldraw[fill=gray!35,draw=black,thick] (2,{\H/2}) circle (0.4);
   % cotas
-  \draw[<->] (-0.5,0) -- (-0.5,\H) node[midway,left] {$H = \SI{20}{m}$};
+  \draw[<->] (\L+0.5,0) -- (\L+0.5,\H) node[midway,right] {$H = \SI{20}{m}$};
   \draw[<->] (0,-0.7) -- (\L,-0.7) node[midway,below] {$L = \SI{100}{m}$};
   \draw[<->] (0,{\H/2}) -- (1.6,{\H/2}) node[midway,above] {$\SI{5}{m}$};
   \draw[<->] (2.7,{\H/2-0.4}) -- (2.7,{\H/2+0.4}) node[right] {$D = \SI{2}{m}$};
@@ -61,20 +61,20 @@ Razón de bloqueo & $D/H$ & $0{,}1$ \\
 
 \paragraph{Supuestos a confirmar.}
 \begin{itemize}[nosep]
-  \item La cota de \SI{5}{m} parece medirse desde la entrada hasta el borde frontal del cilindro (centro en $x = \SI{6}{m}$). \TODO{confirmar con el enunciado/ayudante}
+  \item La cota de \SI{5}{m} parece medirse desde la entrada hasta el borde frontal del cilindro (centro en $x = \SI{6}{m}$). \pend{confirmar con el enunciado/ayudante}
   \item El cilindro está centrado verticalmente ($y = \SI{10}{m}$).
-  \item Las franjas grises superior e inferior se interpretan como paredes (no-slip). \TODO{confirmar; alternativa: slip}
+  \item Las franjas grises superior e inferior se interpretan como paredes (no-slip). \pend{confirmar; alternativa: slip}
   \item Problema 2D: una sola celda en la dirección $z$ con patch \texttt{empty}.
 \end{itemize}
 
 \subsection{Números de Reynolds y propiedades}
-Se define $\Re = U D/\nu$ con $D = \SI{2}{m}$. Fijando $U = \SI{1}{m/s}$ y variando la viscosidad cinemática $\nu$:
+Se define $\Rey = U D/\nu$ con $D = \SI{2}{m}$. Fijando $U = \SI{1}{m/s}$ y variando la viscosidad cinemática $\nu$:
 
 \begin{table}[H]
 \centering
 \begin{tabular}{rcc}
 \toprule
-$\Re$ & $U$ [\si{m/s}] & $\nu = UD/\Re$ [\si{m^2/s}] \\
+$\Rey$ & $U$ [\si{m/s}] & $\nu = UD/\Rey$ [\si{m^2/s}] \\
 \midrule
 $10^{2}$ & 1 & $2\times10^{-2}$ \\
 $10^{3}$ & 1 & $2\times10^{-3}$ \\
@@ -95,7 +95,7 @@ Lista de todo lo que hay que hacer para resolver el problema:
   \item \textbf{Malla 2D} (\texttt{blockMesh}, o \texttt{gmsh}/\texttt{snappyHexMesh}): bloques alrededor del cilindro con aristas \texttt{arc}, refinamiento en la pared del cilindro y en la estela. Patches: \texttt{inlet}, \texttt{outlet}, \texttt{walls}, \texttt{cylinder}, \texttt{frontAndBack} (\texttt{empty}).
   \item \textbf{Calidad de malla}: \texttt{checkMesh}; estimar $y^+$ para elegir tratamiento de pared según el modelo de turbulencia.
   \item \textbf{Condiciones de borde} (ver Tabla~\ref{tab:bc}).
-  \item \textbf{Modelo físico}: \texttt{pimpleFoam} (incompresible, transiente). Elegir turbulencia según $\Re$ (ver Sección~\ref{sec:modelo}).
+  \item \textbf{Modelo físico}: \texttt{pimpleFoam} (incompresible, transiente). Elegir turbulencia según $\Rey$ (ver Sección~\ref{sec:modelo}).
   \item \textbf{Paso de tiempo}: controlar Courant $\mathrm{Co} < 1$ (\texttt{adjustTimeStep}); tiempo total suficiente para varios periodos de desprendimiento de vórtices.
   \item \textbf{Post-proceso}: $\Cd$, $\Cl$ (\texttt{forceCoeffs}), $\St$ (FFT de $\Cl$), campos de velocidad/presión/vorticidad en ParaView, y comparación entre Reynolds.
   \item \textbf{Verificación}: sensibilidad a malla y a $\Delta t$; comparación con valores de la literatura.
@@ -120,12 +120,12 @@ donde $\nu_t = 0$ en los casos laminares.
 \centering
 \begin{tabular}{rll}
 \toprule
-$\Re$ & Régimen esperado & Modelo propuesto \\
+$\Rey$ & Régimen esperado & Modelo propuesto \\
 \midrule
 $10^{2}$ & Laminar, estela periódica & \texttt{laminar} \\
-$10^{3}$ & Laminar/transición (2D) & \texttt{laminar} \TODO{justificar o usar URANS} \\
-$10^{4}$ & Turbulento & \TODO{por ej. $k$--$\omega$ SST} \\
-$10^{5}$ & Turbulento & \TODO{por ej. $k$--$\omega$ SST} \\
+$10^{3}$ & Laminar/transición (2D) & \texttt{laminar} \pend{justificar o usar URANS} \\
+$10^{4}$ & Turbulento & \pend{por ej. $k$--$\omega$ SST} \\
+$10^{5}$ & Turbulento & \pend{por ej. $k$--$\omega$ SST} \\
 \bottomrule
 \end{tabular}
 \caption{Selección preliminar del modelo de turbulencia (a justificar).}
@@ -142,7 +142,7 @@ Patch & $\mathbf{u}$ & $p$ & $k,\ \omega,\ \nu_t$ \\
 \texttt{inlet} & \texttt{fixedValue} $(U,0,0)$ & \texttt{zeroGradient} & \texttt{fixedValue} \\
 \texttt{outlet} & \texttt{inletOutlet} & \texttt{fixedValue} 0 & \texttt{inletOutlet} \\
 \texttt{cylinder} & \texttt{noSlip} & \texttt{zeroGradient} & funciones de pared \\
-\texttt{walls} & \texttt{noSlip} \TODO{o slip} & \texttt{zeroGradient} & funciones de pared \\
+\texttt{walls} & \texttt{noSlip} \pend{o slip} & \texttt{zeroGradient} & funciones de pared \\
 \texttt{frontAndBack} & \texttt{empty} & \texttt{empty} & \texttt{empty} \\
 \bottomrule
 \end{tabular}
@@ -150,10 +150,10 @@ Patch & $\mathbf{u}$ & $p$ & $k,\ \omega,\ \nu_t$ \\
 \label{tab:bc}
 \end{table}
 
-Estimación de intensidad turbulenta y escala para los casos turbulentos: \TODO{definir $I$, $k$, $\omega$ de entrada}.
+Estimación de intensidad turbulenta y escala para los casos turbulentos: \pend{definir $I$, $k$, $\omega$ de entrada}.
 
 \subsection{Malla}
-\TODO{describir bloques, número de celdas, tamaño de primera celda, $y^+$ y tasas de expansión}
+\pend{describir bloques, número de celdas, tamaño de primera celda, $y^+$ y tasas de expansión}
 
 \begin{figure}[H]
 \centering
@@ -195,28 +195,28 @@ nu              ???;   // ver tabla de parametros
 % ---------------------------------------------------------------
 \section{Resultados}
 % ---------------------------------------------------------------
-Para cada $\Re$ incluir: campo de velocidad, presión y vorticidad en un instante representativo, y la historia temporal de $\Cd$ y $\Cl$.
+Para cada $\Rey$ incluir: campo de velocidad, presión y vorticidad en un instante representativo, y la historia temporal de $\Cd$ y $\Cl$.
 
-\subsection{$\Re = 100$}
-\TODO{figuras y comentarios}
-\subsection{$\Re = 1000$}
-\TODO{figuras y comentarios}
-\subsection{$\Re = 10000$}
-\TODO{figuras y comentarios}
-\subsection{$\Re = 100000$}
-\TODO{figuras y comentarios}
+\subsection{\texorpdfstring{$\Rey = 100$}{Re = 100}}
+\pend{figuras y comentarios}
+\subsection{\texorpdfstring{$\Rey = 1000$}{Re = 1000}}
+\pend{figuras y comentarios}
+\subsection{\texorpdfstring{$\Rey = 10000$}{Re = 10000}}
+\pend{figuras y comentarios}
+\subsection{\texorpdfstring{$\Rey = 100000$}{Re = 100000}}
+\pend{figuras y comentarios}
 
 \subsection{Comparación entre casos}
 \begin{table}[H]
 \centering
 \begin{tabular}{rccc}
 \toprule
-$\Re$ & $\overline{\Cd}$ & $\Cl^{\mathrm{rms}}$ & $\St$ \\
+$\Rey$ & $\overline{\Cd}$ & $\Cl^{\mathrm{rms}}$ & $\St$ \\
 \midrule
-$10^{2}$ & \TODO{} & \TODO{} & \TODO{} \\
-$10^{3}$ & \TODO{} & \TODO{} & \TODO{} \\
-$10^{4}$ & \TODO{} & \TODO{} & \TODO{} \\
-$10^{5}$ & \TODO{} & \TODO{} & \TODO{} \\
+$10^{2}$ & \pend{} & \pend{} & \pend{} \\
+$10^{3}$ & \pend{} & \pend{} & \pend{} \\
+$10^{4}$ & \pend{} & \pend{} & \pend{} \\
+$10^{5}$ & \pend{} & \pend{} & \pend{} \\
 \bottomrule
 \end{tabular}
 \caption{Coeficientes integrales y número de Strouhal, con $\St = f D/U$.}
@@ -225,14 +225,14 @@ $10^{5}$ & \TODO{} & \TODO{} & \TODO{} \\
 % ---------------------------------------------------------------
 \section{Análisis y discusión}
 % ---------------------------------------------------------------
-\TODO{efecto del Reynolds sobre la estela, desprendimiento de vórtices, influencia del bloqueo $D/H = 0{,}1$ y de las paredes, rol del modelo de turbulencia y limitaciones 2D/URANS, sensibilidad a malla y paso de tiempo}
+\pend{efecto del Reynolds sobre la estela, desprendimiento de vórtices, influencia del bloqueo $D/H = 0{,}1$ y de las paredes, rol del modelo de turbulencia y limitaciones 2D/URANS, sensibilidad a malla y paso de tiempo}
 
 % ---------------------------------------------------------------
 \section{Conclusiones}
 % ---------------------------------------------------------------
-\TODO{conclusiones}
+\pend{conclusiones}
 
 % \begin{thebibliography}{9}
-% \bibitem{} \TODO{referencias: manual de OpenFOAM, apuntes del curso, literatura de cilindro circular}
+% \bibitem{} \pend{referencias: manual de OpenFOAM, apuntes del curso, literatura de cilindro circular}
 % \end{thebibliography}
 
