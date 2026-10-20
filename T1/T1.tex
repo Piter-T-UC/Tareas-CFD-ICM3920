@@ -33,7 +33,8 @@ EL desarrollo de perfil lo podemos ver como en una simulacion general fuera de e
 Es bueno explicar que el eje $X$ corresponde los metros post inicio o pre termino. Con esto vemos que en verdad no hay cambios en el error pasado los 2 metros post rampa (9m salida), en el caso del de entrada es porque la entrada tanto como al inicio y antes de comenzar la rampa cambia las condiciones , al inicio se coloca una velocidad uniforme pero eso no coincide con la condicion de no deslizamiento, en cambio al finalizar aguas arriba hay un gran apertura que genera un bajo de presion (bernulli)
 
 \subsection{Zona de separacion y recuperacion de presion}
-En este caso, creo que debido a el reinolds de 100 osea una velocidad baja, los efectos viscosos son mas importantes (no existe esa separacion), por otro lado la zona de recuperacion de la presion tambien corresponde a la zona donde la velocidad deja dispersarse (tiene compoennte en $y$)
+En este caso, creo que debido a el reynolds de 100 osea una velocidad baja, los efectos viscosos son mas importantes (no existe esa separacion (Ux siempre mayor a 0)), por otro lado la zona de recuperacion de la presion tambien corresponde a la zona donde la velocidad deja dispersarse (tiene compoennte en $y$) por ende una vez pasada llega a estabilizarse bastante pero como se vio antes no se llega al perfil esperado, esto puede ser debido a que en la difusion el perfil como que se dividio, generando una zona (perfil) plano, excepto en los bordes que tienen  su perfil, esto se parece mucho a la capa limite donde despues de eso el gradiente de velocidad es casi 0, lo que se llama $U_{inf}$ en mecanica de fluidos
+
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{Imagenes/T1/SimMillp.png}
@@ -48,8 +49,7 @@ En este caso, creo que debido a el reinolds de 100 osea una velocidad baja, los 
 \section{Planteamiento del problema}
 \label{sec:problema}
 
-Descripción breve de lo que se simula y para qué: geometría, fluido, régimen y
-objetivo de la tarea (validar, comparar mallas, estudiar un parámetro, etc.).
+Simulacion de un flujo en un difusor
 
 \subsection{Dominio y geometría}
 
@@ -395,12 +395,13 @@ Resumen de la salida de \comando{checkMesh}:
     Gruesa & 2600   & 0.0027  \\
     Media  & 15600 & 0.0025  \\
     Fina   & 33000  & 0.0025  \\
+    ultrafina  & 2.6mill & 0.0025  \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 Se considera convergida la malla cuando la variación de la
-velocidad entre niveles sucesivos es indistinguible a 2 decimales, con esto llegamos a que pasado los 15600 celdas estamos bien.
+velocidad entre niveles sucesivos es indistinguible a 2 cifras significativas, con esto llegamos a que pasado los 15600 celdas estamos bien.
 
 % ----------------------------------------------------------------------
 \subsection{Condiciones iniciales y de borde}
@@ -600,7 +601,7 @@ Aqui pude hacer lo mismo
 Como se aprecia, pasado los 5 metros desde la rampa no mayor diferencia.
 
 \subsection{Influencia Dominio}
-Una vez vi que existe poco cambio pasado los 3 Metros aguas arriba y pasados los 8 metros aguas abajo, corri 24 simulaciones, las cuales son todas las combinaciones de ellas obtuve información
+Una vez vi que existe poco cambio pasado los 3 Metros aguas arriba y pasados los 8 metros aguas abajo, corri 24 simulaciones, las cuales son todas las combinaciones de ellas obtuve información que aguas arriba el dominio  no cambia mucho despues de los 2 metros, en cambio aguas abajo si cambiaba mucho mas, en especial la condicion de presion, ya que obliga al final del canal a llegar a 0, en casos puede llegar a que esta presion no vuelva a subir como si lo hace si se deja dentro del dominio computacional, también con simulaciones muy largas, se tiene que hay partes del fluido que son muy similares. Para mas info revisar resumen es bastante bueno explicando todo eso.
 
 
 
@@ -679,3 +680,7 @@ Mesh OK.
 
 
 \end{terminal}
+
+
+\section{Uso ia}
+Para esta entrega se uso IA, en la generacion de codigo de openFOAM (generacion de nodos paramétricos(pasar de nodos a mano a parametricos), explicacion sobre solvers, sobre que hace cada cosa de los codigos, sobre errores, generacion de codigo para tomar valores (perfiles) de las simulaciones), python (creacion de codigo para graficar esos perfiles que saque antes con OpenFoam), Generacion de codigo Tikz y de esta planilla (las palabras dentro de ella son mias probablemente vea faltas de ortografia, y ideas locas son mias), 
