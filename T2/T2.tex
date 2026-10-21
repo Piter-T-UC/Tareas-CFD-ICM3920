@@ -53,19 +53,12 @@ Largo del canal & $L$ & \SI{100}{m} \\
 Alto del canal & $H$ & \SI{20}{m} \\
 Diámetro del cilindro & $D$ & \SI{2}{m} \\
 Distancia entrada--cilindro & $x_c$ & \SI{5}{m} \\
-Razón de bloqueo & $D/H$ & $0{,}1$ \\
 \bottomrule
 \end{tabular}
 \caption{Datos geométricos del problema.}
 \end{table}
 
-\paragraph{Supuestos adoptados.}
-\begin{itemize}[nosep]
-  \item La cota de \SI{5}{m} se mide desde la entrada hasta el \emph{borde} frontal del cilindro, por lo que el centro queda en $x = \SI{6}{m}$ (en \archivo{Parametros}: \texttt{Lup = 5 + R}). El resto del canal, hasta completar $L=\SI{100}{m}$, queda aguas abajo.
-  \item El cilindro está centrado verticalmente ($y = \SI{10}{m}$).
-  \item Las franjas grises superior e inferior se interpretan como paredes con condición de no deslizamiento.
-  \item Problema 2D: una sola celda en la dirección $z$ con patch \texttt{empty}.
-\end{itemize}
+
 
 \subsection{Números de Reynolds y propiedades}
 Se define $\Rey = U D/\nu$ con $D = \SI{2}{m}$. Fijando $U = \SI{1}{m/s}$ y variando la viscosidad cinemática $\nu$:
@@ -88,32 +81,21 @@ $10^{5}$ & 1 & $2\times10^{-5}$ \\
 % ---------------------------------------------------------------
 \section{Plan de trabajo}
 % ---------------------------------------------------------------
-Lista de todo lo que hay que hacer para resolver el problema:
+Aqui lo que hago, es nombrar todos los pasos para poder correr las simulaciones, para el caso de Re menor a 2000 corro  con flujo laminar porque es laminar el Reynolds y es mas rapido la simulacion.
 
 \begin{enumerate}[label=\textbf{\arabic*.}]
-  \item \textbf{Definir los casos}: un directorio por Reynolds (\texttt{Re100}, \texttt{Re1000}, \texttt{Re10000}, \texttt{Re100000}) (\texttt{Cilindro\_Re<N>}); $\Rey=10^2$ y $10^3$ comparten la misma malla.
-  \item \textbf{Malla 2D} (\texttt{blockMesh} + \texttt{snappyHexMesh} + \texttt{extrudeMesh}): malla de fondo del canal, refinamiento y capas prismáticas en el cilindro y caja de refinamiento en la estela (Sección~\ref{sec:refinamiento}). Patches: \texttt{inlet}, \texttt{outlet}, \texttt{lowerWall}, \texttt{upperWall}, \texttt{cylinder}, \texttt{front}/\texttt{back} (\texttt{empty}).
+  \item \textbf{Definir los casos}: un directorio por Reynolds (\texttt{Re100}, \texttt{Re1000}, \texttt{Re10000}, \texttt{Re100000}) $\Rey=10^2$ y $10^3$ comparten la misma malla.
+  \item \textbf{Malla 2D} (\texttt{blockMesh} + \texttt{snappyHexMesh}): malla de fondo del canal, refinamiento y capas Variables en el cilindro y caja de refinamiento en la estela.
   \item \textbf{Calidad de malla}: \texttt{checkMesh}; estimar $y^+$ para elegir tratamiento de pared según el modelo de turbulencia.
   \item \textbf{Condiciones de borde} (ver Tabla~\ref{tab:bc}).
-  \item \textbf{Modelo físico}: \texttt{pimpleFoam} (incompresible, transiente). Elegir turbulencia según $\Rey$ (ver Sección~\ref{sec:modelo}).
-  \item \textbf{Paso de tiempo}: controlar Courant $\mathrm{Co} < 1$ (\texttt{adjustTimeStep}); tiempo total suficiente para varios periodos de desprendimiento de vórtices.
-  \item \textbf{Post-proceso}: $\Cd$, $\Cl$ (\texttt{forceCoeffs}), $\St$ (FFT de $\Cl$), campos de velocidad/presión/vorticidad en ParaView, y comparación entre Reynolds.
-  \item \textbf{Verificación}: sensibilidad a malla y a $\Delta t$; comparación con valores de la literatura.
-  \item \textbf{Redactar el informe} con este documento.
+  \item \textbf{Modelo físico}: \texttt{pimpleFoam} (incompresible, transiente). Elegir turbulencia según $\Rey$
+  \item \textbf{Paso de tiempo}: controlar Courant $\mathrm{Co} < 1$ y que el tiempo total sea suficiente para varios periodos de desprendimiento de vórtices.
 \end{enumerate}
 
 % ---------------------------------------------------------------
 \section{Modelo y configuración numérica}
 \label{sec:modelo}
-% ---------------------------------------------------------------
-\subsection{Ecuaciones}
-Flujo incompresible, transiente, 2D:
-\begin{equation}
-  \nabla\cdot\mathbf{u} = 0, \qquad
-  \frac{\partial \mathbf{u}}{\partial t} + \nabla\cdot(\mathbf{u}\mathbf{u})
-  = -\frac{1}{\rho}\nabla p + \nabla\cdot\!\left[(\nu+\nu_t)\left(\nabla\mathbf{u}+\nabla\mathbf{u}^{T}\right)\right]
-\end{equation}
-donde $\nu_t = 0$ en los casos laminares.
+% --------------------------------------------------------------
 
 \subsection{Modelo de turbulencia por caso}
 \begin{table}[H]
@@ -122,8 +104,8 @@ donde $\nu_t = 0$ en los casos laminares.
 \toprule
 $\Rey$ & Régimen esperado & Modelo \\
 \midrule
-$10^{2}$ & Laminar, estela periódica (sobre $\Rey\approx47$) & \texttt{laminar} \\
-$10^{3}$ & Laminar 2D (en 3D real ya es inestable) & \texttt{laminar} \\
+$10^{2}$ & Laminar, estela periódica  & \texttt{laminar} \\
+$10^{3}$ & Laminar& \texttt{laminar} \\
 $10^{4}$ & Capa límite laminar, estela turbulenta & URANS 2D, $k$--$\omega$ SST \\
 $10^{5}$ & Capa límite laminar, estela turbulenta & URANS 2D, $k$--$\omega$ SST \\
 \bottomrule
@@ -131,15 +113,10 @@ $10^{5}$ & Capa límite laminar, estela turbulenta & URANS 2D, $k$--$\omega$ SST
 \caption{Selección del modelo de turbulencia.}
 \end{table}
 
-\paragraph{Justificación.}
-\begin{itemize}[nosep]
-  \item \textbf{$\Rey = 10^2$.} Está sobre el $\Rey$ crítico de desprendimiento ($\approx 47$) pero bajo la aparición de inestabilidades 3D ($\approx 190$) \cite{williamson1996}. La simulación 2D laminar es físicamente consistente y resuelve la calle de vórtices de von Kármán sin modelo.
-  \item \textbf{$\Rey = 10^3$.} Se mantiene laminar porque la malla, con celdas de \SI{0.025}{m} en la pared ($D/80$), es suficientemente fina para resolver las escalas. Es una simulación 2D de un flujo que en la realidad es tridimensional, por lo que cabe esperar un $\Cd$ y un $\Cl$ mayores que los experimentales (la tridimensionalidad reduce la coherencia de la estela).
-  \item \textbf{$\Rey = 10^4, 10^5$.} Se usa $k$--$\omega$ SST \cite{menter1994}: se comporta como $k$--$\omega$ cerca de la pared (válido hasta la subcapa viscosa con $\yplus\approx 1$) y como $k$--$\varepsilon$ en el flujo libre, y maneja bien los gradientes adversos de presión y la separación. Es \emph{URANS}: separa la escala del desprendimiento (resuelta) de la turbulencia (modelada).
-  \item \textbf{Limitación.} SST trata la capa límite como turbulenta desde el inicio, mientras que en estos $\Rey$ (subcríticos, bajo la crisis de arrastre en $\Rey\approx 2$--$3\times10^{5}$) la capa límite real es laminar y separa antes ($\approx 80^\circ$). El modelo tenderá a retrasar la separación y a subestimar $\Cd$. Las condiciones de entrada y de pared están en la Sección~\ref{sec:bc}.
-\end{itemize}
+Para los casos de $10^4$ y $10^5$ se utiliza lo mismo que en clases, no se toca los calores de omega, k y nut
 
 \subsection{Condiciones de borde}
+Para los casos 
 \label{sec:bc}
 \begin{table}[H]
 \centering
@@ -149,7 +126,7 @@ $10^{5}$ & Capa límite laminar, estela turbulenta & URANS 2D, $k$--$\omega$ SST
 \toprule
 Patch & $\mathbf{u}$ & $p$ & $k,\ \omega$ & $\nu_t$ \\
 \midrule
-\texttt{inlet} & \texttt{fixedValue} $(U,0,0)$ & \texttt{zeroGradient} & \texttt{fixedValue} & \texttt{calculated} \\
+\texttt{inlet} & \texttt{fixedValue} $(1,0,0)$ & \texttt{zeroGradient} & \texttt{fixedValue} & \texttt{calculated} \\
 \texttt{outlet} & \texttt{inletOutlet} & \texttt{fixedValue} 0 & \texttt{inletOutlet} & \texttt{calculated} \\
 \texttt{cylinder} & \texttt{noSlip} & \texttt{zeroGradient} & funciones de pared & \texttt{nutkWallFunction} \\
 \texttt{lowerWall}, \texttt{upperWall} & \texttt{noSlip} & \texttt{zeroGradient} & funciones de pared & \texttt{nutkWallFunction} \\
@@ -160,14 +137,6 @@ Patch & $\mathbf{u}$ & $p$ & $k,\ \omega$ & $\nu_t$ \\
 \label{tab:bc}
 \end{table}
 
-Con $\yplus\approx 1$ en el cilindro, \texttt{omegaWallFunction} y \texttt{nutkWallFunction} se comportan como una condición de pared de bajo $\Rey$; en las paredes del canal, que no tienen capas, actúan como funciones de pared estándar.
-
-\paragraph{Turbulencia en la entrada.} Se impone intensidad $I = \num{0.01}$ y razón de viscosidades $\nu_t/\nu = 10$:
-\begin{equation}
-  k_{\mathrm{in}} = \tfrac{3}{2}(U I)^2 = \SI{1.5e-4}{m^2/s^2}, \qquad
-  \omega_{\mathrm{in}} = \frac{k_{\mathrm{in}}}{\nu_t} = \frac{k_{\mathrm{in}}}{10\,\nu}.
-\end{equation}
-Esto da $\omega_{\mathrm{in}} = \SI{0.075}{s^{-1}}$ para $\Rey = 10^4$ y $\SI{0.75}{s^{-1}}$ para $\Rey = 10^5$. La salida usa \texttt{inletOutlet} para evitar que un eventual reflujo introduzca energía.
 
 \subsection{Malla}
 \label{sec:malla}
@@ -175,22 +144,22 @@ La malla se genera en tres pasos con las utilidades de \OF{}, todo controlado de
 
 \begin{enumerate}[nosep]
   \item \comando{blockMesh}: malla de fondo del canal completo, \emph{sin} cilindro, con celdas cúbicas de lado $\Delta x = D/10 = \SI{0.2}{m}$ ($500\times100$ celdas, $\num{50000}$ en total) y una sola celda en $z$.
-  \item \comando{snappyHexMesh}: recorta el cilindro, refina alrededor y en la estela, ajusta (\emph{snap}) la malla a la superficie y agrega capas prismáticas en la pared del cilindro.
-  \item \comando{extrudeMesh}: \comando{snappyHexMesh} también refina en $z$, por lo que se toma la cara \texttt{front} y se extruye \emph{una} celda para recuperar una malla 2D con \texttt{front}/\texttt{back} de tipo \texttt{empty}.
+  \item \comando{snappyHexMesh}: recorta el cilindro, refina alrededor y en la estela, ajusta (\emph{snap}) la malla a la superficie y agrega capas Variables en la pared del cilindro.
+
 \end{enumerate}
 
 \subsubsection{Refinamiento cerca del cilindro}
 \label{sec:refinamiento}
-\paragraph{Por qué se necesita.} Los gradientes más fuertes del problema están pegados al cilindro: la capa límite, los puntos de separación y las capas de corte que luego se enrollan en los vórtices. Una malla uniforme de \SI{0.2}{m} ($D/10$) no los resolvería, pero refinar todo el canal ($\num{500}\times\num{100}$ celdas a $\Delta x$) con el tamaño necesario en la pared sería inviable. La solución es refinar solo donde se necesita, en tres zonas anidadas (\cref{fig:zonas}):
+ Los gradientes más fuertes del problema están pegados al cilindro: la capa límite, los puntos de separación y las capas de corte que luego se enrollan en los vórtices. Una malla uniforme de \SI{0.2}{m} ($D/10$) no los resolvería, pero refinar todo el canal ($\num{500}\times\num{100}$ celdas a $\Delta x$) con el tamaño necesario en la pared sería inviable. La solución es refinar solo donde se necesita, en tres zonas anidadas (\cref{fig:zonas}):
 
 \begin{enumerate}[label=\textbf{\arabic*.}]
   \item \textbf{Superficie del cilindro} (refinamiento más fuerte).
-  \item \textbf{Capas prismáticas} pegadas a la pared del cilindro.
+  \item \textbf{Capas variables} pegadas a la pared del cilindro.
   \item \textbf{Caja de estela}, con refinamiento moderado, donde se desprenden y se convectan los vórtices.
 \end{enumerate}
-Fuera de ellas la malla queda en el tamaño de fondo, y en las paredes del canal no se refina (allí se usan funciones de pared).
+Fuera de ellas la malla queda en el tamaño de fondo, y en las paredes del canal no se refina.
 
-\paragraph{Niveles de refinamiento (octree).} \comando{snappyHexMesh} refina dividiendo cada celda en 8 (en 2D, en 4): un \emph{nivel} $n$ da celdas de tamaño
+\paragraph{Niveles de refinamiento} Se refina dividiendo cada celda en 8 (en 2D, en 4): un \emph{nivel} $n$ da celdas de tamaño
 \begin{equation}
   \Delta_n = \frac{\Delta x}{2^{n}} = \frac{D}{10\cdot 2^{n}}.
 \end{equation}
@@ -210,35 +179,28 @@ Nivel $n$ & $\Delta_n$ [\si{m}] & Celdas por $D$ & Uso \\
 \caption{Tamaños de celda por nivel de refinamiento.}
 \end{table}
 
-En \archivo{snappyHexMeshDict} esto se declara con
-\begin{foamcode}
-refinementSurfaces
-{
-    cylinder { level ($cylLevelMin $cylLevelMax); }   // en la superficie
-}
-refinementRegions
-{
-    wake { mode inside; level $wakeLevel; }           // dentro de la caja
-}
-nCellsBetweenLevels 3;     // 3 celdas de transicion entre niveles
-\end{foamcode}
-Se usa $\texttt{cylLevelMin} = \texttt{cylLevelMax}$ porque el cilindro es liso y no tiene curvatura variable que justifique un rango. \texttt{nCellsBetweenLevels = 3} fuerza una transición gradual: entre una zona de nivel $n$ y otra de nivel $n-1$ hay tres celdas de relleno, de modo que el tamaño cambia de a un factor 2 por vez y la razón de aspecto y la oblicuidad se mantienen bajas.
 
-\paragraph{Adaptación a la superficie (\emph{snap}).} El refinamiento por octree deja la pared como una escalera de celdas. El paso \emph{snap} (\texttt{snapControls}) desplaza los nodos de esa escalera sobre el cilindro geométrico, que se declara como un cilindro analítico de radio $R = D/2$ (no como una malla de triángulos), por lo que la superficie queda exacta y sin facetas.
 
-\paragraph{Capas prismáticas.} Con un tamaño de celda $\Delta_n$ aislado, no se puede alcanzar $\yplus\approx 1$ sin una malla enorme, porque la primera celda tendría que ser mucho más delgada que ancha. Por eso se agregan $N$ capas prismáticas (\texttt{addLayersControls}) pegadas a la pared, de espesor creciente geométricamente con razón $e_r$:
+\paragraph{Adaptación a la superficie (\emph{snap}).} El refinamiento deja la pared como una escalera de celdas. El paso \emph{snap} (\texttt{snapControls}) desplaza los nodos de esa escalera sobre el cilindro geométrico, que se declara como un cilindro analítico de radio $R = D/2$ (no como una malla de triángulos), por lo que la superficie queda exacta y sin facetas.
+
+\paragraph{Capas prismáticas.} Con un tamaño de celda $\Delta_n$ aislado, no se puede alcanzar $\yplus\approx 1$ sin una malla enorme, porque la primera celda tendría que ser mucho más delgada que ancha. Por eso se agregan $N$ capas variables pegadas a la pared, de espesor creciente geométricamente con razón $e_r$ en este caso 1.2 como en el usado en clases:
 \begin{equation}
   t_i = t_1\, e_r^{\,i-1},\qquad
   T = \sum_{i=1}^{N} t_i = t_1\,\frac{e_r^{N}-1}{e_r-1},\qquad
   t_N = t_1\, e_r^{\,N-1}.
 \end{equation}
-Los espesores se dan en valores absolutos (\texttt{relativeSizes false}, \texttt{firstLayerThickness} $=t_1$), con $e_r = 1.2$ en todos los casos. Las capas se agregan solo en el cilindro; \texttt{featureAngle 180} porque la superficie es suave, y \texttt{minThickness} $=0.1\,t_1$ como espesor mínimo admisible.
 
-\paragraph{Cálculo del primer espesor $t_1$.} Se impone que la primera capa tenga el espesor de $\yplus=1$. Con la velocidad de fricción $u_\tau = U\sqrt{C_f/2}$ se tiene $y_1 = \nu/u_\tau$. El coeficiente de fricción se estima en la mitad de la circunferencia ($x = \pi D/2$, $\Rey_x = \Rey\,\pi/2$) con correlaciones de placa plana: Blasius, $C_f = 1.328/\sqrt{\Rey_x}$, en los casos laminares, y $C_f = 0.026\,\Rey_x^{-1/7}$ en los turbulentos. Es una estimación de orden de magnitud, no un cálculo sobre el cilindro real; $\yplus$ se verificará con el resultado de la simulación. \pend{reportar $\yplus$ máximo y promedio sobre el cilindro desde \comando{postProcess -func yPlus}}
+\paragraph{Cálculo del primer espesor $t_1$.} Se impone que la primera capa tenga el espesor de $\yplus=1$. Con la velocidad de fricción $u_\tau = U\sqrt{C_f/2}$ se tiene $y_1 = \nu/u_\tau$. El coeficiente de fricción se estima correlaciones de flujo sobre un cilindro (gracias internet).
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{C_cilindro.png}
+    \caption{Flujo sobre un cilindro estacionario $C_D$}
+    \label{fig:placeholder}
+\end{figure}
 Para $\Rey = 10^2$ y $10^3$ el $y_1$ resultante es mayor que la propia celda ($y_1=\SI{0.087}{m}$ y $\SI{0.0155}{m}$ frente a $\Delta_3=\SI{0.025}{m}$), es decir, la capa límite laminar se resuelve sin necesidad de refinamiento especial, y se toma $t_1 = \Delta_n/2$.
 
-\paragraph{Cálculo del número de capas $N$.} Se elige $N$ para que la última capa tenga aproximadamente el tamaño de la celda del octree vecina, $t_N\approx\Delta_n$. Así el paso de la zona prismática a la zona hexaédrica es suave y no hay un salto brusco de volumen. Despejando,
+ Se elige $N$ para que la última capa tenga aproximadamente el tamaño de la celda cercana, $t_N\approx\Delta_n$. Así el paso de la zona variable a la zona hexaédrica es suave y no hay un salto brusco de volumen. Despejando,
 \begin{equation}
   N \approx 1 + \frac{\ln(\Delta_n/t_1)}{\ln e_r}.
 \end{equation}
@@ -262,11 +224,7 @@ $10^{5}$ & SST     & 5 & \num{0.00625} & 16 & \num{0.00041} & \num{0.0063} & \nu
 
 El espesor total $T$ es menor que el espesor de capa límite estimado (de orden \SIrange{0.1}{0.2}{m} para los casos turbulentos con correlaciones de placa plana), de modo que las capas quedan dentro de la capa límite. Para $\Rey=10^{2}$ la capa límite es comparable a $D$ y las capas cubren solo una fracción pequeña, lo que no es problema porque allí la malla del octree ya la resuelve.
 
-\paragraph{Caja de estela.} El desprendimiento ocurre aguas abajo, así que se refina una caja
-\[
-  x\in[x_c-1.5D,\ x_c+8D],\qquad y\in[y_c-1.5D,\ y_c+1.5D],
-\]
-es decir $x\in[3,\,22]\,\si{m}$ e $y\in[7,\,13]\,\si{m}$, con nivel 2 ($\Rey\le10^3$) o 3 ($\Rey\ge10^4$). Su extensión cubre los primeros $\approx 8D$ de estela, donde se forma la calle de vórtices; más lejos la solución es suave y no justifica el costo. El nivel es menor que el de la pared porque la escala de los vórtices ya desprendidos es del orden de $D$, no de la capa límite.
+El desprendimiento ocurre aguas abajo, así que se refina una caja la cual contenga en la cercanía los nodos importantes, en este caso se hizo la caja 30 metros post centro del circulo.
 
 \begin{figure}[H]
 \centering
@@ -291,33 +249,7 @@ es decir $x\in[3,\,22]\,\si{m}$ e $y\in[7,\,13]\,\si{m}$, con nivel 2 ($\Rey\le1
 \label{fig:zonas}
 \end{figure}
 
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[scale=1.1]
-  % Esquema (no a escala) de las capas prismaticas, N = 6, er = 1.2
-  \fill[gray!35] (0,-0.3) rectangle (9,0);
-  \draw[thick] (0,0) -- (9,0);
-  \node[anchor=east] at (-0.1,-0.15) {\footnotesize pared (cilindro)};
-  % alturas acumuladas: t1 = 0.5, er = 1.2
-  \foreach \y in {0.5,1.1,1.82,2.684,3.721,4.965} {
-    \draw[ofrojo] (0,\y) -- (9,\y);
-  }
-  % columnas de ancho ~ t_N
-  \foreach \x in {1.244,2.488,...,8.7} {
-    \draw[gray] (\x,0) -- (\x,4.965);
-  }
-  % celdas del octree por encima
-  \foreach \x in {0,1.244,2.488,...,8.7} {
-    \draw[ofazul] (\x,4.965) rectangle ++(1.244,1.244);
-  }
-  \draw[<->] (9.3,0) -- (9.3,0.5) node[midway,right] {\footnotesize $t_1$};
-  \draw[<->] (9.3,3.721) -- (9.3,4.965) node[midway,right] {\footnotesize $t_N\approx\Delta_n$};
-  \draw[<->] (9.9,0) -- (9.9,4.965) node[midway,right] {\footnotesize $T$};
-  \node[ofazul,anchor=west,font=\footnotesize] at (0.1,6.6) {celdas del octree, $\Delta_n$};
-\end{tikzpicture}
-\caption{Esquema de las capas prismáticas ($N=6$, $e_r=1.2$): la primera capa es delgada ($\yplus\approx1$) y la última iguala el tamaño $\Delta_n$ de las celdas hexaédricas vecinas.}
-\label{fig:capas}
-\end{figure}
+
 
 \subsubsection{Malla obtenida y calidad}
 Los resultados de \comando{snappyHexMesh} y \comando{checkMesh} (en 2D, tras \comando{extrudeMesh}) son:
@@ -339,15 +271,14 @@ Las capas se completaron al \SI{100}{\percent} del espesor objetivo en todos los
 
 \begin{figure}[H]
 \centering
-% \includegraphics[width=0.9\textwidth]{Imagenes/T2/malla_global.png}
-\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.5cm}\pend{captura de la malla completa en ParaView}\vspace{1.5cm}}}
+\includegraphics[width=0.9\textwidth]{T2/mallaRe10000C.png}
 \caption{Malla utilizada (global).}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-% \includegraphics[width=0.9\textwidth]{Imagenes/T2/malla_cilindro.png}
-\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.5cm}\pend{captura del detalle de capas alrededor del cilindro}\vspace{1.5cm}}}
+\includegraphics[width=0.9\textwidth]{T2/mallaRe10000.png}
+
 \caption{Detalle de la malla alrededor del cilindro, con las capas prismáticas.}
 \end{figure}
 
@@ -375,81 +306,72 @@ PIMPLE & 1 corrector externo, 2 de presión, 1 no ortogonal \\
 \caption{Esquemas numéricos y solvers.}
 \end{table}
 
-\paragraph{Paso de tiempo y duración.} El paso se ajusta con $\Cou_{\max}=0.5$ (\texttt{adjustTimeStep}), partiendo de $\Delta t = 10^{-3}\,t_c$ con $t_c = D/U = \SI{2}{s}$. Cada caso corre $200\,t_c$ ($\SI{400}{s}$) y escribe cada $t_c$. Para el Strouhal se descartará el transitorio inicial.
+\paragraph{Paso de tiempo y duración.} El paso se ajusta con $\Cou_{\max}=0.5$ (\texttt{adjustTimeStep}), partiendo de $\Delta t = 10^{-3}\,t_c$ con $t_c = D/U = \SI{2}{s}$. Cada caso corre $200\,t_c$ ($\SI{400}{s}$) y escribe cada $t_c$.
 
 \paragraph{Coeficientes de fuerza.} \texttt{forceCoeffs} sobre el patch \texttt{cylinder} con $\rho_\infty=1$, $U_\infty = \SI{1}{m/s}$, $l_{\mathrm{ref}} = D$ y $A_{\mathrm{ref}} = D\,\Delta z$, donde $\Delta z=\SI{0.2}{m}$ es el espesor de la malla en $z$; así $\Cd$ y $\Cl$ son por unidad de longitud adimensionalizados con $\tfrac12\rho U^2 D$. Además hay una sonda de $\mathbf{u}$ y $p$ a $2D$ aguas abajo del centro del cilindro.
-
-\subsection{Archivos de configuración y reproducción}
-Cada caso es un directorio \texttt{Cilindro\_Re<N>} con
-\begin{lstlisting}
-Cilindro_Re<N>/
-  Allrun, Allclean
-  0/            U, p, (k, omega, nut)
-  constant/     Parametros, physicalProperties, momentumTransport
-  system/       blockMeshDict, snappyHexMeshDict, extrudeMeshDict,
-                controlDict, fvSchemes, fvSolution
-\end{lstlisting}
-El único archivo que cambia entre casos es \archivo{constant/Parametros}. Su bloque de refinamiento (para $\Rey=10^5$) es:
-\begin{foamcode}
-D       2;     H 20;    Lup #calc "5.0 + 0.5*$D";     // centro a 5 m + R del inlet
-Re      100000;  Uin 1;  nu #calc "$Uin*$D/$Re";
-dx      #calc "$D/10.0";                              // malla de fondo 0.2 m
-wakeLevel 3;
-cylLevelMin 5;  cylLevelMax 5;                        // dn = dx/2^5 = 0.00625 m
-nLayers 16;  expansionRatio 1.2;  firstLayerThickness 0.00041;
-\end{foamcode}
-Para correr un caso (las simulaciones no forman parte de este documento):
-\begin{terminal}
-source /opt/openfoam14/etc/bashrc
-cd Cilindro_Re<N>
-./Allrun     # blockMesh, snappyHexMesh, extrudeMesh, checkMesh, foamRun
-\end{terminal}
-
-
+\newpage
 % ---------------------------------------------------------------
 \section{Resultados}
 % ---------------------------------------------------------------
-Para cada $\Rey$ incluir: campo de velocidad, presión y vorticidad en un instante representativo, y la historia temporal de $\Cd$ y $\Cl$.
 
 \subsection{\texorpdfstring{$\Rey = 100$}{Re = 100}}
-\pend{figuras y comentarios}
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.5\linewidth]{T2/Re100.png}
+    \label{fig:Re100}
+\end{figure}
+Se puede pareciar como esta estela es grande y ocupa casi todo el canal, tambien esta periodicidad la cual se genera con los vortices
 \subsection{\texorpdfstring{$\Rey = 1000$}{Re = 1000}}
-\pend{figuras y comentarios}
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.5\linewidth]{T2/Re1000.png}
+    \label{fig:Re1000}
+\end{figure}
+Se aprecia la misma vorticidad en este caso son mas pequenos, mas seguidos y tambien en el comienzo el primer vortice llego mas lejos dentro de la pared, de hecho genero un cambio en el borde de ella.
 \subsection{\texorpdfstring{$\Rey = 10000$}{Re = 10000}}
 \pend{figuras y comentarios}
 \subsection{\texorpdfstring{$\Rey = 100000$}{Re = 100000}}
 \pend{figuras y comentarios}
 
-\subsection{Comparación entre casos}
-\begin{table}[H]
-\centering
-\begin{tabular}{rccc}
-\toprule
-$\Rey$ & $\overline{\Cd}$ & $\Cl^{\mathrm{rms}}$ & $\St$ \\
-\midrule
-$10^{2}$ & \pend{} & \pend{} & \pend{} \\
-$10^{3}$ & \pend{} & \pend{} & \pend{} \\
-$10^{4}$ & \pend{} & \pend{} & \pend{} \\
-$10^{5}$ & \pend{} & \pend{} & \pend{} \\
-\bottomrule
-\end{tabular}
-\caption{Coeficientes integrales y número de Strouhal, con $\St = f D/U$.}
-\end{table}
+\
 
 % ---------------------------------------------------------------
 \section{Análisis y discusión}
 % ---------------------------------------------------------------
-\pend{efecto del Reynolds sobre la estela, desprendimiento de vórtices, influencia del bloqueo $D/H = 0{,}1$ y de las paredes, rol del modelo de turbulencia y limitaciones 2D/URANS, sensibilidad a malla y paso de tiempo}
+Aunque en una imagen estática no se aprecia del todo, el número de Reynolds
+condiciona el largo, el ancho y la dispersión de la estela
+detrás del cilindro. Con $U = 1\,\mathrm{m/s}$ y geometría fija, $Re$ se varía
+solo mediante $\nu$, por lo que las diferencias entre casos se deben al
+balance entre fuerzas inerciales y viscosas.
+
+\begin{itemize}
+  \item $Re = 10^{2}$: estela laminar con calle de vórtices de Kalman
+  regular y bien definida. La difusión viscosa es alta, por lo que los
+  vórtices se disipan a pocos diámetros aguas abajo y la estela es
+  relativamente larga y angosta.
+
+  \item $Re = 10^{3}$: la capa de corte se vuelve inestable y la estela
+  comienza a transicionar a turbulencia. La zona de formación de vórtices se
+  acorta y la estela se ensancha y se vuelve más irregular.
+
+  \item $Re = 10^{4}$: estela turbulenta con fuerte mezcla. Los vórtices se
+  desintegran rápidamente por turbulencia, de modo que el déficit de velocidad
+  se dispersa en una región más ancha y se recupera en una distancia
+  comparable o menor.
+
+  \item $Re = 10^{5}$: régimen subcrítico alto, con capa límite laminar que
+  se separa cerca de $80^{\circ}$ y estela completamente turbulenta, ancha y
+  caótica. La frecuencia de desprendimiento se mantiene en
+  $St \approx 0{,}2$.
+\end{itemize}
+
+En general, al aumentar $Re$ la estela pasa de vórtices ordenados y
+difundidos por viscosidad a una estela turbulenta dominada por mezcla, más
+ancha y desordenada. El confinamiento del canal (razón de bloqueo $D/H$)
+acelera el flujo en los hombros del cilindro y hace que la estela interactúe
+con las paredes, efecto que se superpone al de $Re$.
 
 % ---------------------------------------------------------------
 \section{Conclusiones}
-% ---------------------------------------------------------------
-\pend{conclusiones}
 
-\begin{thebibliography}{9}
-\bibitem{menter1994} F.~R. Menter, ``Two-equation eddy-viscosity turbulence models for engineering applications'', \emph{AIAA Journal}, 32(8):1598--1605, 1994.
-\bibitem{williamson1996} C.~H.~K. Williamson, ``Vortex dynamics in the cylinder wake'', \emph{Annual Review of Fluid Mechanics}, 28:477--539, 1996.
-\bibitem{schlichting} H.~Schlichting y K.~Gersten, \emph{Boundary-Layer Theory}, Springer, 9.ª ed.
-\bibitem{openfoam} OpenFOAM Foundation, \emph{OpenFOAM User Guide}, versión 14, \url{https://doc.cfd.direct/openfoam/user-guide-v14/}.
-\end{thebibliography}
 
